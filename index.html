@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Contas Parceladas</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Gerenciador de Contas Parceladas</h1>
+            <div class="header-actions">
+                <button id="themeToggle" class="btn-secondary theme-toggle">🌙</button>
+                <button id="statsBtn" class="btn-secondary">📊 Estatísticas</button>
+                <button id="addAccountBtn" class="btn-primary">+ Nova Conta</button>
+            </div>
+        </header>
+
+        <!-- Modal do Formulário -->
+        <div id="accountModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Nova Conta</h2>
+                <form id="accountForm">
+                    <div class="form-group">
+                        <label for="accountName">Nome da Conta:</label>
+                        <input type="text" id="accountName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="totalValue">Valor Total:</label>
+                        <input type="number" id="totalValue" step="0.01" min="0" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dueDate">Data de Vencimento:</label>
+                        <input type="date" id="dueDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="installments">Quantidade de Parcelas:</label>
+                        <input type="number" id="installments" min="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tag">Tag:</label>
+                        <input type="text" id="tag" placeholder="Ex: Pai, Mãe, Casa..." required>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="cancelBtn" class="btn-secondary">Cancelar</button>
+                        <button type="submit" class="btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal de Confirmação -->
+        <div id="confirmModal" class="modal">
+            <div class="modal-content confirm-modal">
+                <div class="confirm-icon">⚠️</div>
+                <h2>Confirmar Exclusão</h2>
+                <p id="confirmMessage">Tem certeza que deseja excluir esta conta?</p>
+                <div class="form-actions">
+                    <button id="confirmCancel" class="btn-secondary">Cancelar</button>
+                    <button id="confirmDelete" class="btn-danger">Excluir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Pesquisa -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Pesquisar por tag...">
+            <button id="clearSearch" class="btn-secondary">Limpar</button>
+        </div>
+
+        <!-- Tela Principal -->
+        <div id="mainScreen">
+            <!-- Seções das Contas -->
+            <div class="accounts-sections">
+                <!-- Contas Pagas -->
+                <section class="account-section paid">
+                    <h2>Contas Pagas</h2>
+                    <div id="paidAccounts" class="accounts-container">
+                        <!-- Contas pagas serão inseridas aqui -->
+                    </div>
+                </section>
+
+                <!-- Contas a Pagar -->
+                <section class="account-section pending">
+                    <h2>Contas a Pagar</h2>
+                    <div id="pendingAccounts" class="accounts-container">
+                        <!-- Contas a pagar serão inseridas aqui -->
+                    </div>
+                </section>
+
+                <!-- Contas Atrasadas -->
+                <section class="account-section overdue">
+                    <h2>Contas Atrasadas</h2>
+                    <div id="overdueAccounts" class="accounts-container">
+                        <!-- Contas atrasadas serão inseridas aqui -->
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Tela de Estatísticas -->
+        <div id="statsScreen" class="hidden">
+            <div class="stats-header">
+                <button id="backToMain" class="btn-secondary">← Voltar</button>
+                <h2>📊 Estatísticas e Relatórios</h2>
+            </div>
+
+            <!-- Filtros -->
+            <div class="stats-filters">
+                <div class="filter-group">
+                    <label for="statsMonth">Mês:</label>
+                    <select id="statsMonth">
+                        <option value="1">Janeiro</option>
+                        <option value="2">Fevereiro</option>
+                        <option value="3">Março</option>
+                        <option value="4">Abril</option>
+                        <option value="5">Maio</option>
+                        <option value="6">Junho</option>
+                        <option value="7">Julho</option>
+                        <option value="8">Agosto</option>
+                        <option value="9">Setembro</option>
+                        <option value="10">Outubro</option>
+                        <option value="11">Novembro</option>
+                        <option value="12">Dezembro</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="statsYear">Ano:</label>
+                    <select id="statsYear">
+                        <!-- Anos serão preenchidos dinamicamente -->
+                    </select>
+                </div>
+                <button id="applyFilters" class="btn-primary">Aplicar Filtros</button>
+            </div>
+
+            <!-- Resumo dos Totais -->
+            <div class="stats-summary">
+                <div class="summary-card paid">
+                    <div class="summary-icon">✅</div>
+                    <div class="summary-content">
+                        <h3>Total Pago</h3>
+                        <span id="totalPaid" class="summary-value">R$ 0,00</span>
+                    </div>
+                </div>
+                <div class="summary-card pending">
+                    <div class="summary-icon">⏳</div>
+                    <div class="summary-content">
+                        <h3>Total Pendente</h3>
+                        <span id="totalPending" class="summary-value">R$ 0,00</span>
+                    </div>
+                </div>
+                <div class="summary-card overdue">
+                    <div class="summary-icon">⚠️</div>
+                    <div class="summary-content">
+                        <h3>Total Atrasado</h3>
+                        <span id="totalOverdue" class="summary-value">R$ 0,00</span>
+                    </div>
+                </div>
+                <div class="summary-card saved">
+                    <div class="summary-icon">💰</div>
+                    <div class="summary-content">
+                        <h3>Economizado</h3>
+                        <span id="totalSaved" class="summary-value">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3>Gastos por Mês</h3>
+                    <canvas id="monthlyChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Categorias no Mês</h3>
+                    <canvas id="categoriesChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
